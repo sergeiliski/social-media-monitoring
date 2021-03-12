@@ -64,26 +64,27 @@ class SocialMediaMonitor {
       try {
         this.database = Knex(options)
         const exists = await this.database.schema.hasTable(Helper.getTableName())
+        console.log('hasTable:', exists);
         if (!exists) {
           await this.database.schema.createTable(Helper.getTableName(), (table) => {
             table.increments();
             table.string('uuid').defaultTo(uuid())
             table.string('page_id');
             table.string('comment_id');
-            table.boolean('facebook').defaultTo(false)
-            table.boolean('instagram').defaultTo(false)
-            table.boolean('linkedin').defaultTo(false)
-            table.boolean('direct_message').defaultTo(false)
-            table.boolean('feed_message').defaultTo(false)
+            table.string('thread_id');
+            table.string('channel').defaultTo(null)
+            table.string('message_type').defaultTo(null)
             table.boolean('adverse').defaultTo(false)
             table.boolean('pqc').defaultTo(false)
             table.boolean('mi').defaultTo(false)
             table.boolean('handled').defaultTo(false)
             table.boolean('spam').defaultTo(false)
+            table.boolean('archived').defaultTo(false)
             table.json('metadata').defaultTo({})
           })
         }
       } catch (error) {
+        console.log('ERRRRRROR');
         throw error
       }
     } else {
@@ -105,6 +106,21 @@ class SocialMediaMonitor {
     const messages = [
       ...(await this.facebook.getMessages())
     ]
+    const threads = messages.map(m => m.thread_id)
+    const pages = messages.map(m => m.page_id)
+    const rows = await this.database
+      .select('thread_id', 'page_id', 'adverse', 'pqc', 'mi')
+      .from(Helper.getTableName())
+      .whereIn('thread_id', threads)
+    rows.forEach((row) => {
+      messages.forEach((message, i) => {
+        if (row.thread_id === message.thread_id && row.page_id === message.page_id) {
+          messages[i].adverse = row.adverse
+          messages[i].pqc = row.pqc
+          messages[i].mi = row.mi
+        }
+      })
+    })
     return messages
   }
 
@@ -123,7 +139,7 @@ class SocialMediaMonitor {
     //   }
     // }]
     messages = [].concat(messages)
-    console.log('messages:', messages);
+    console.log('messages:', messages)
     for (const i in messages) {
       const message = messages[i]
 
@@ -141,24 +157,42 @@ class SocialMediaMonitor {
 
       // Check for object correctness separately?
       const channel = this.channels[this.channels.indexOf(message.channel)];
-      console.log('channel', channel);
+      console.log('channel', channel)
 
       if (!channel) {
         throw Error(`message ${message.id} has no channels`)
       }
-      console.log('message:', message);
+      console.log('message:', message)
       return this[channel].reply(message) // ie. this.facebook.reply(message)
     }
   }
 
-  async setReplied(messages) {
+  async escalate(messages) {
     messages = [].concat(messages)
-    messages.forEach(v => v.replied = true);
-    return await this.database
-    .insert(messages)
-    .onConflict(['comment_id', 'page_id']) // is this AND or OR -> We need AND
-    .merge()
-    .returning('*');
+    const inserted = []
+    const changed = []
+    for (const i in messages) {
+      const message = messages[i]
+      const rows = await this.database.select('thread_id', 'page_id')
+      .from(Helper.getTableName())
+      .where('page_id', message.page_id)
+      .andWhere('thread_id', message.thread_id)
+      .returning('*')
+      if (rows.length > 0) {
+        const row = await this.database(Helper.getTableName())
+        .where('page_id', message.page_id)
+        .andWhere('thread_id', message.thread_id)
+        .update(message)
+        .returning('*')
+        changed.push(row[0])
+      } else {
+        const row = await this.database(Helper.getTableName())
+        .insert(message)
+          .returning('*')
+        inserted.push(row)
+      }
+    }
+    return inserted.concat(changed)
   }
 }
 
