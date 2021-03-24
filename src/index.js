@@ -189,7 +189,7 @@ class SocialMediaMonitor {
         const row = await this.database(Helper.getTableName())
         .insert(message)
           .returning('*')
-        inserted.push(row)
+        inserted.push(row[0])
       }
     }
     return inserted.concat(changed)
