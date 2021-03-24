@@ -46,7 +46,6 @@ class Facebook {
       const token = page.token
       const url = ''.concat(this.baseUrl, ''.concat(page.id, '/', 'feed'), '?fields=', fields, '&access_token=', token, '&limit=1')
       const results = await this.getAllResults(url)
-      console.log('messages:', results[2].comments)
       const messages = results.map((m) => {
         const comment = {
           created_time: m.created_time,
@@ -86,7 +85,6 @@ class Facebook {
   }
 
   async sendDirectMessage(recipient_id, message, token) {
-    console.log('direct token:', token)
     // https://graph.facebook.com/v9.0/me/messages?access_token=EAALhtPBbe9oBAFDW5pfCaf5ZANQ6LWNIuQdPqRkciQ2XicK8issW0DOyrjQmWZCi8QPuZAyxjp3t8pRSNJzndu9KTr3zwKAzH4Jvhn1PU5CYfmIwwn6abrIZBwDLSMOlEIRZATByBdFI0P7ZBn5PICwZBINXO15NHQhVTJZCDhchAgZDZD
     const fields = ['v9.0', 'me', 'messages'].join('/')
     const url = ''.concat(this.baseUrl, fields, '?access_token=', token)
@@ -99,7 +97,7 @@ class Facebook {
         text: message
       }
     }
-    console.log('obj', obj);
+
     try {
       return await axios.post(url, obj)
     } catch (error) {
@@ -111,13 +109,10 @@ class Facebook {
   }
 
   async sendPostMessage(comment_id, message, token) {
-    console.log('comment id:', comment_id);
-    console.log('message:', message);
-    console.log('post token:', token);
     // https://developers.facebook.com/docs/graph-api/reference/v9.0/object/comments
     const fields = ['v9.0', comment_id, 'comments'].join('/')
     const url = ''.concat(this.baseUrl, fields, '?message=', message, '&access_token=', token)
-    console.log('url', url);
+
     try {
       return await axios.post(url)
     } catch (error) {
@@ -149,21 +144,12 @@ class Facebook {
       throw Error(`Message ${message.id} message type is not a string`)
     }
 
-    // if (message.direct_message) {
-    //   return await this.sendDirectMessage(message.from.id, message.text, token[0].token)
-    // }
-
-    // if (message.feed_message) {
-    //   return await this.sendPostMessage(message.comment.id, message.text, token[0].token)
-    // }
-
     const action = {
       'direct': this.sendDirectMessage,
       'feed': this.sendPostMessage
     };
 
     if (action[message.message_type]) {
-      console.log('action:', action[message.message_type]);
       // first one is either commend_id or recipient_id?
       return await action[message.message_type].call(this, message.thread_id, message.message, token[0].token);
     }
