@@ -2,13 +2,6 @@ class Helper {
 
   static table = 'SocialMediaMonitor'
 
-  static filterParticipants(participants, id) {
-    const participant = participants.filter((p) => {
-      return p.id !== id
-    })
-    return participant.length > 1 ? [] : participant
-  }
-
   static getSimpleDatabaseConfigs() {
     return {
       databaseOptions: {

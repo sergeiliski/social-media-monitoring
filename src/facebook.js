@@ -150,7 +150,6 @@ class Facebook {
     };
 
     if (action[message.message_type]) {
-      // first one is either commend_id or recipient_id?
       return await action[message.message_type].call(this, message.thread_id, message.message, token[0].token);
     }
 

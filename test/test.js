@@ -1,8 +1,6 @@
-import SocialMediaMonitor from './index.js'
+import SocialMediaMonitor from '../src/index.js'
 import Facebook from '../src/facebook.js';
-import Instagram from './instagram.js';
-import Linkedin from './linkedin.js';
-import Helper from './helper.js';
+import Helper from '../src/helper.js';
 
 
 test('SMM constructor', () => {
@@ -57,8 +55,8 @@ test('Facebook direct reply returns not null', async () => {
     page_id: '',
     thread_id: ''
   }
-  // const response = await smm.reply(message)
-  // expect(response).not.toBeNull()
+  const response = await smm.reply(message)
+  expect(response).not.toBeNull()
 });
 
 test('Facebook feed reply returns not null', async () => {
@@ -72,6 +70,6 @@ test('Facebook feed reply returns not null', async () => {
     page_id: '',
     thread_id: ''
   }
-  // const response = await smm.reply(message)
-  // expect(response).not.toBeNull()
+  const response = await smm.reply(message)
+  expect(response).not.toBeNull()
 });
