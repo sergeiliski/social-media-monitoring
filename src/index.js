@@ -47,7 +47,7 @@ class SocialMediaMonitor {
     this.linkedin = new Linkedin({ ...options.facebook, ...info })
   }
 
-  async connect() {
+  async createDatabase() {
     if (this.databaseOptions) {
       const options = {
         client: this.databaseOptions.client || 'pg',
@@ -82,6 +82,28 @@ class SocialMediaMonitor {
             table.json('metadata').defaultTo({})
           })
         }
+      } catch (error) {
+        throw error
+      }
+    }
+  }
+
+  async connect() {
+    if (this.databaseOptions) {
+      const options = {
+        client: this.databaseOptions.client || 'pg',
+        version: this.databaseOptions.version || '7.2',
+        connection: {
+          host : this.databaseOptions.host,
+          port : this.databaseOptions.port,
+          user : this.databaseOptions.user,
+          password : this.databaseOptions.password,
+          database : this.databaseOptions.database
+        }
+      }
+
+      try {
+        this.database = Knex(options)
       } catch (error) {
         throw error
       }
