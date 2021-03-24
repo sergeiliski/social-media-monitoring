@@ -123,6 +123,7 @@ class SocialMediaMonitor {
   }
 
   async getMessages() {
+    await this.connect()
     const messages = [
       ...(await this.facebook.getMessages())
     ]
@@ -140,6 +141,7 @@ class SocialMediaMonitor {
         }
       })
     })
+    await this.destroyConnection()
     return messages
   }
 
@@ -172,6 +174,7 @@ class SocialMediaMonitor {
   }
 
   async escalate(messages) {
+    await this.connect()
     messages = [].concat(messages)
     const inserted = []
     const changed = []
@@ -196,6 +199,7 @@ class SocialMediaMonitor {
         inserted.push(row[0])
       }
     }
+    await this.destroyConnection()
     return inserted.concat(changed)
   }
 }
