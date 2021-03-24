@@ -64,7 +64,6 @@ class SocialMediaMonitor {
       try {
         this.database = Knex(options)
         const exists = await this.database.schema.hasTable(Helper.getTableName())
-        console.log('hasTable:', exists);
         if (!exists) {
           await this.database.schema.createTable(Helper.getTableName(), (table) => {
             table.increments();
@@ -84,7 +83,6 @@ class SocialMediaMonitor {
           })
         }
       } catch (error) {
-        console.log('ERRRRRROR');
         throw error
       }
     } else {
@@ -107,7 +105,6 @@ class SocialMediaMonitor {
       ...(await this.facebook.getMessages())
     ]
     const threads = messages.map(m => m.thread_id)
-    const pages = messages.map(m => m.page_id)
     const rows = await this.database
       .select('thread_id', 'page_id', 'adverse', 'pqc', 'mi')
       .from(Helper.getTableName())
@@ -125,21 +122,7 @@ class SocialMediaMonitor {
   }
 
   async reply(messages) {
-    // [{
-    //   text: 'Thank you for your message. Fuck off.',
-    //   facebook: true,
-    //   feed_message: false,
-    //   direct_message: true,
-    //   page_id: '55535',
-    //   comment: {
-    //     id: '12345'
-    //   },
-    //   from: {
-    //     id: '355535'
-    //   }
-    // }]
     messages = [].concat(messages)
-    console.log('messages:', messages)
     for (const i in messages) {
       const message = messages[i]
 
@@ -157,12 +140,11 @@ class SocialMediaMonitor {
 
       // Check for object correctness separately?
       const channel = this.channels[this.channels.indexOf(message.channel)];
-      console.log('channel', channel)
 
       if (!channel) {
         throw Error(`message ${message.id} has no channels`)
       }
-      console.log('message:', message)
+
       return this[channel].reply(message) // ie. this.facebook.reply(message)
     }
   }
