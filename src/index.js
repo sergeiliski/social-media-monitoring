@@ -125,7 +125,6 @@ class SocialMediaMonitor {
   async getMessages() {
     await this.connect()
     const fb = await this.facebook.getMessages()
-    console.log('fb:', fb)
     const messages = [
       ...fb.messages
     ]
