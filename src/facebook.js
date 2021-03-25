@@ -42,7 +42,11 @@ class Facebook {
         })
         response.messages = response.messages.concat(messages)
       } catch (error) {
-        response.errors.push(error)
+        try {
+          response.errors.push({ message: error.data.error.message,  id: page.id })
+        } catch (secondaryError) {
+          response.errors.push({ message: 'Unknown error',  id: page.id })
+        }
       }
     }
     return response
@@ -79,7 +83,11 @@ class Facebook {
         })
         response.messages = response.messages.concat(messages)
       } catch (error) {
-        response.errors.push(error)
+        try {
+          response.errors.push({ message: error.data.error.message,  id: page.id })
+        } catch (secondaryError) {
+          response.errors.push({ message: 'Unknown error',  id: page.id })
+        }
       }
     }
     return response
