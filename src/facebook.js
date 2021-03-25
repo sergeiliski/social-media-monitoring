@@ -39,6 +39,7 @@ class Facebook {
         })
         response.messages = response.messages.concat(messages)
       } catch (error) {
+        console.log('direct error')
         response.errors.push(error)
       }
     }
@@ -76,9 +77,11 @@ class Facebook {
         })
         response.messages = response.messages.concat(messages)
       } catch (error) {
+        console.log('feed error')
         response.errors.push(error)
       }
     }
+    console.log('feed:', response)
     return response
   }
 
