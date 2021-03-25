@@ -13,7 +13,10 @@ class Facebook {
   async getMessages() {
     const directMessages = await this.getDirectMessages(this.pages)
     const feedMessages = await this.getFeedMessages(this.pages)
-    return [...directMessages, ...feedMessages]
+    return {
+      messages: [...directMessages.messages, ...feedMessages.messages],
+      errors: [...directMessages.errors, ...feedMessages.errors]
+    }
   }
 
   async getDirectMessages(pages) {
