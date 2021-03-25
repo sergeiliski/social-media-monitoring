@@ -8,7 +8,7 @@
     "start": "npx babel src --watch --out-dir dist",
     "build": "npx babel src --out-dir dist"
   },
-  "author": "",
+  "author": "Sergei Liski",
   "license": "ISC",
   "devDependencies": {
     "@babel/cli": "^7.12.17",
@@ -20,6 +20,7 @@
     "jest": "^26.6.3"
   },
   "dependencies": {
+    "@babel/runtime": "^7.13.10",
     "axios": "^0.21.1",
     "knex": "^0.21.16",
     "pg": "^8.5.1",
