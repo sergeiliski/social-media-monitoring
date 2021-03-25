@@ -13,9 +13,12 @@ class Facebook {
   async getMessages() {
     const directMessages = await this.getDirectMessages(this.pages)
     const feedMessages = await this.getFeedMessages(this.pages)
+    const errors = [...directMessages.errors, ...feedMessages.errors]
     return {
       messages: [...directMessages.messages, ...feedMessages.messages],
-      errors: [...directMessages.errors, ...feedMessages.errors]
+      errors: errors.filter((error, index, self) => {
+        return self.findIndex(t => t.id === error.id && t.message === error.message) === index
+      })
     }
   }
 
@@ -43,7 +46,7 @@ class Facebook {
         response.messages = response.messages.concat(messages)
       } catch (error) {
         try {
-          response.errors.push({ message: error.data.error.message,  id: page.id })
+          response.errors.push({ message: error.response.data.error.message,  id: page.id })
         } catch (secondaryError) {
           response.errors.push({ message: 'Unknown error',  id: page.id })
         }
@@ -84,7 +87,7 @@ class Facebook {
         response.messages = response.messages.concat(messages)
       } catch (error) {
         try {
-          response.errors.push({ message: error.data.error.message,  id: page.id })
+          response.errors.push({ message: error.response.data.error.message,  id: page.id })
         } catch (secondaryError) {
           response.errors.push({ message: 'Unknown error',  id: page.id })
         }
