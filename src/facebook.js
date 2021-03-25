@@ -17,7 +17,7 @@ class Facebook {
     return {
       messages: [...directMessages.messages, ...feedMessages.messages],
       errors: errors.filter((error, index, self) => {
-        return self.findIndex(t => t.id === error.id && t.message === error.message) === index
+        return self.findIndex(t => t.id === error.id && t.message.substring(0, 15) === error.message.substring(0, 15)) === index
       })
     }
   }
