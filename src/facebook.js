@@ -19,59 +19,67 @@ class Facebook {
   async getDirectMessages(pages) {
     // https://developers.facebook.com/docs/graph-api/reference/v9.0/conversation
     // https://developers.facebook.com/docs/graph-api/reference/page/conversations
-    let messages = []
+    const response = { messages: [], errors: [] }
     for (const page of pages) {
       const fields = ''.concat('messages', '{', ['message', 'attachments', 'shares', 'from', 'created_time'].join(','), '}')
       const token = page.token
       const url = ''.concat(this.baseUrl, ''.concat(page.id, '/', 'conversations'), '?fields=', fields, '&access_token=', token, '&limit=1')
-      const results = await this.getAllResults(url)
-      const msgs = results.map((m) => {
-        const comments = m.messages.data
-        return {
-          comments: comments.reverse(),
-          message_type: 'direct',
-          id: m.id,
-          page_id: page.id,
-          channel: 'facebook',
-          thread_id: comments[0].from.id
-        }
-      })
-      messages = messages.concat(msgs)
+      try {
+        const results = await this.getAllResults(url)
+        const messages = results.map((m) => {
+          const comments = m.messages.data
+          return {
+            comments: comments.reverse(),
+            message_type: 'direct',
+            id: m.id,
+            page_id: page.id,
+            channel: 'facebook',
+            thread_id: comments[0].from.id
+          }
+        })
+        response.messages = response.messages.concat(messages)
+      } catch (error) {
+        response.errors.push(error)
+      }
     }
-    return messages
+    return response
   }
 
   async getFeedMessages(pages) {
     // https://developers.facebook.com/docs/graph-api/reference/v9.0/page/feed
-    let messages = []
+    const response = { messages: [], errors: [] }
     for (const page of pages) {
       const fields = ['from', 'to', 'message', 'created_time', 'updated_time', 'comments.limit(999)'].join(',')
       const token = page.token
       const url = ''.concat(this.baseUrl, ''.concat(page.id, '/', 'feed'), '?fields=', fields, '&access_token=', token, '&limit=1')
-      const results = await this.getAllResults(url)
-      const msgs = results.map((m) => {
-        const comment = {
-          created_time: m.created_time,
-          from: m.from,
-          message: m.message,
-          id: m.id,
-          page_id: page.id
-        }
-        if (m.comments) {
-          m.comments.data.unshift(comment)
-        }
-        return {
-          comments: m.comments ? m.comments.data.sort((a, b) => new Date(a.created_time) - new Date(b.created_time)) : [comment],
-          message_type: 'feed',
-          id: m.id,
-          page_id: page.id,
-          channel: 'facebook',
-          thread_id: m.id
-        }
-      })
-      messages = messages.concat(msgs)
+      try {
+        const results = await this.getAllResults(url)
+        const messages = results.map((m) => {
+          const comment = {
+            created_time: m.created_time,
+            from: m.from,
+            message: m.message,
+            id: m.id,
+            page_id: page.id
+          }
+          if (m.comments) {
+            m.comments.data.unshift(comment)
+          }
+          return {
+            comments: m.comments ? m.comments.data.sort((a, b) => new Date(a.created_time) - new Date(b.created_time)) : [comment],
+            message_type: 'feed',
+            id: m.id,
+            page_id: page.id,
+            channel: 'facebook',
+            thread_id: m.id
+          }
+        })
+        response.messages = response.messages.concat(messages)
+      } catch (error) {
+        response.errors.push(error)
+      }
     }
-    return messages
+    return response
   }
 
   async getAllResults(url) {

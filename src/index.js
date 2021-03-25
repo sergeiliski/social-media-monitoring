@@ -127,7 +127,7 @@ class SocialMediaMonitor {
     const messages = [
       ...(await this.facebook.getMessages())
     ]
-    const threads = messages.map(m => m.thread_id)
+    const threads = messages.messages.map(m => m.thread_id)
     const rows = await this.database
       .select('thread_id', 'page_id', 'adverse', 'pqc', 'mi')
       .from(Helper.getTableName())
@@ -142,7 +142,7 @@ class SocialMediaMonitor {
       })
     })
     await this.destroyConnection()
-    return messages
+    return { messages, errors: messages.errors }
   }
 
   async reply(messages) {
