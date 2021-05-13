@@ -55,14 +55,14 @@ class Facebook {
     return response
   }
 
-  async getComment(page, comment_id) {
-    const response = { messages: [], errors: [] }
-    const token = page.token
-    const url = ''.concat(this.baseUrl, ''.concat(comment_id, '/', 'comments'), '&access_token=', token)
-    console.log('url', url);
-    const results = await this.getAllResults(url)
-    console.log(results);
-  }
+  // async getComment(page, comment_id) {
+  //   const response = { messages: [], errors: [] }
+  //   const token = page.token
+  //   const url = ''.concat(this.baseUrl, ''.concat(comment_id, '/', 'comments'), '&access_token=', token)
+  //   console.log('url', url);
+  //   const results = await this.getAllResults(url)
+  //   console.log(results);
+  // }
 
   async getFeedMessages(pages) {
     // https://developers.facebook.com/docs/graph-api/reference/v10.0/page/feed
