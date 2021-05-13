@@ -55,13 +55,29 @@ class Facebook {
     return response
   }
 
+  async getComment(page, comment_id) {
+    const response = { messages: [], errors: [] }
+    const token = page.token
+    const url = ''.concat(this.baseUrl, ''.concat(comment_id, '/', 'comments'), '&access_token=', token)
+    console.log('url', url);
+    const results = await this.getAllResults(url)
+    console.log(results);
+  }
+
   async getFeedMessages(pages) {
-    // https://developers.facebook.com/docs/graph-api/reference/v9.0/page/feed
+    // https://developers.facebook.com/docs/graph-api/reference/v10.0/page/feed
     const response = { messages: [], errors: [] }
     for (const page of pages) {
-      const fields = ['from', 'to', 'message', 'created_time', 'updated_time', 'comments.limit(999)'].join(',')
+      const fields = [
+        'from',
+        'to',
+        'message',
+        'created_time',
+        'updated_time',
+        'comments{from,created_time,message,comments{from,message,created_time}}'
+      ].join(',')
       const token = page.token
-      const url = ''.concat(this.baseUrl, ''.concat(page.id, '/', 'feed'), '?fields=', fields, '&access_token=', token, '&limit=1')
+      const url = ''.concat(this.baseUrl, ''.concat(page.id, '/', 'feed'), '?fields=', fields, '&access_token=', token)
       try {
         const results = await this.getAllResults(url)
         const messages = results.map((m) => {
@@ -75,8 +91,28 @@ class Facebook {
           if (m.comments) {
             m.comments.data.unshift(comment)
           }
+          const comments = m.comments ? m.comments.data.sort((a, b) => new Date(a.created_time) - new Date(b.created_time)) : [comment];
+          comments.forEach((topLevelComment, i) => {
+            if (!topLevelComment.comments) {
+              return [];
+            }
+            const lowComments = {};
+            lowComments.data = topLevelComment.comments.data
+              .map((lowLevelComment) => {
+                return {
+                  created_time: lowLevelComment.created_time,
+                  from: lowLevelComment.from,
+                  message: lowLevelComment.message,
+                  id: lowLevelComment.id
+                }
+              });
+            comments[i].comments = lowComments
+              .data.sort(
+                (a, b) => new Date(a.created_time) - new Date(b.created_time)
+              );
+          });
           return {
-            comments: m.comments ? m.comments.data.sort((a, b) => new Date(a.created_time) - new Date(b.created_time)) : [comment],
+            comments: comments,
             message_type: 'feed',
             id: m.id,
             page_id: page.id,
