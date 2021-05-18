@@ -139,6 +139,7 @@ class Facebook {
       const response = await axios.get(url)
       if (!response || !response.data || !response.data.paging || !response.data.paging.next) {
         next = false
+        return results;
       }
       results = [...results, ...response.data.data]
       url = response.data.paging.next
