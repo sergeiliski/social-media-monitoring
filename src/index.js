@@ -131,7 +131,7 @@ class SocialMediaMonitor {
     const errors = [
       ...fb.errors
     ]
-    const comments = messages.map(m => m.comment_id)
+    const comments = messages.map(m => m.id)
     const rows = await this.database
       .select('comment_id', 'page_id', 'adverse', 'pqc', 'mi')
       .from(Helper.getTableName())
@@ -139,7 +139,7 @@ class SocialMediaMonitor {
     rows.forEach((row) => {
       messages.forEach((message, i) => {
         if (
-          row.comment_id === message.comment_id && row.page_id === message.page_id
+          row.comment_id === message.id && row.page_id === message.page_id
         ) {
           messages[i].adverse = row.adverse
           messages[i].pqc = row.pqc
