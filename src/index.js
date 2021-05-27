@@ -131,14 +131,16 @@ class SocialMediaMonitor {
     const errors = [
       ...fb.errors
     ]
-    const threads = messages.map(m => m.thread_id)
+    const comments = messages.map(m => m.comment_id)
     const rows = await this.database
-      .select('thread_id', 'page_id', 'adverse', 'pqc', 'mi')
+      .select('comment_id', 'page_id', 'adverse', 'pqc', 'mi')
       .from(Helper.getTableName())
-      .whereIn('thread_id', threads)
+      .whereIn('comment_id', comments)
     rows.forEach((row) => {
       messages.forEach((message, i) => {
-        if (row.thread_id === message.thread_id && row.page_id === message.page_id) {
+        if (
+          row.comment_id === message.comment_id && row.page_id === message.page_id
+        ) {
           messages[i].adverse = row.adverse
           messages[i].pqc = row.pqc
           messages[i].mi = row.mi
@@ -184,15 +186,15 @@ class SocialMediaMonitor {
     const changed = []
     for (const i in messages) {
       const message = messages[i]
-      const rows = await this.database.select('thread_id', 'page_id')
+      const rows = await this.database.select('comment_id', 'page_id')
       .from(Helper.getTableName())
       .where('page_id', message.page_id)
-      .andWhere('thread_id', message.thread_id)
+      .andWhere('comment_id', message.comment_id)
       .returning('*')
       if (rows.length > 0) {
         const row = await this.database(Helper.getTableName())
         .where('page_id', message.page_id)
-        .andWhere('thread_id', message.thread_id)
+        .andWhere('comment_id', message.comment_id)
         .update(message)
         .returning('*')
         changed.push(row[0])
