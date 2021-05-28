@@ -103,7 +103,8 @@ class Facebook {
                   created_time: lowLevelComment.created_time,
                   from: lowLevelComment.from,
                   message: lowLevelComment.message,
-                  id: lowLevelComment.id
+                  id: lowLevelComment.id,
+                  page_id: page.id
                 }
               });
             comments[i].comments = lowComments
