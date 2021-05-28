@@ -131,7 +131,15 @@ class SocialMediaMonitor {
     const errors = [
       ...fb.errors
     ]
-    const comments = messages.map(m => m.id)
+    const commentIds = [];
+    const comments = messages.forEach(m => {
+      commentIds.push(m.id);
+      if (m.comments) {
+        m.comments.forEach(n => {
+          commentIds.push(n.id);
+        });
+      }
+    })
     const rows = await this.database
       .select('comment_id', 'page_id', 'adverse', 'pqc', 'mi')
       .from(Helper.getTableName())
