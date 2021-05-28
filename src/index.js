@@ -145,6 +145,15 @@ class SocialMediaMonitor {
           messages[i].pqc = row.pqc
           messages[i].mi = row.mi
         }
+        message.comments.forEach((comment, j) => {
+          if (
+            row.comment_id === comment.id && row.page_id === comment.page_id
+          ) {
+            comments[j].adverse = row.adverse
+            comments[j].pqc = row.pqc
+            comments[j].mi = row.mi
+          }
+        });
       })
     })
     await this.destroyConnection()
