@@ -133,10 +133,10 @@ class SocialMediaMonitor {
     ]
     const comments = [];
     messages.forEach(m => {
-      commentIds.push(m.id);
+      comments.push(m.id);
       if (m.comments) {
         m.comments.forEach(n => {
-          commentIds.push(n.id);
+          comments.push(n.id);
         });
       }
     })
