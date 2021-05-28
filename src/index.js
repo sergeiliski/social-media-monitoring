@@ -131,8 +131,8 @@ class SocialMediaMonitor {
     const errors = [
       ...fb.errors
     ]
-    const commentIds = [];
-    const comments = messages.forEach(m => {
+    const comments = [];
+    messages.forEach(m => {
       commentIds.push(m.id);
       if (m.comments) {
         m.comments.forEach(n => {
