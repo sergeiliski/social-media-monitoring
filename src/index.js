@@ -4,6 +4,7 @@ import Linkedin from './linkedin.js'
 import { uuid } from 'uuidv4'
 import Knex from 'knex'
 import Helper from './helper.js'
+import Query from './query.js'
 // https://devhints.io/knex
 
 class SocialMediaMonitor {
@@ -125,45 +126,29 @@ class SocialMediaMonitor {
   async getMessages() {
     await this.connect()
     const fb = await this.facebook.getMessages()
-    const messages = [
+    const msgs = [
       ...fb.messages
     ]
     const errors = [
       ...fb.errors
     ]
     const comments = [];
-    messages.forEach(m => {
-      comments.push(m.id);
-      if (m.comments) {
+    msgs.forEach(m => {
+      if (m.comments instanceof Array) {
         m.comments.forEach(n => {
           comments.push(n.id);
+          if(n.comments instanceof Array) {
+            n.comments.forEach(b => {
+              comments.push(b.id);
+            });
+          }
         });
       }
     })
-    const rows = await this.database
-      .select('comment_id', 'page_id', 'adverse', 'pqc', 'mi')
-      .from(Helper.getTableName())
-      .whereIn('comment_id', comments)
-    rows.forEach((row) => {
-      messages.forEach((message, i) => {
-        if (
-          row.comment_id === message.id && row.page_id === message.page_id
-        ) {
-          messages[i].adverse = row.adverse
-          messages[i].pqc = row.pqc
-          messages[i].mi = row.mi
-        }
-        message.comments.forEach((comment, j) => {
-          if (
-            row.comment_id === comment.id && row.page_id === comment.page_id
-          ) {
-            comments[j].adverse = row.adverse
-            comments[j].pqc = row.pqc
-            comments[j].mi = row.mi
-          }
-        });
-      })
-    })
+
+    const rows = await Query.getEscalations(this.database, comments)
+    const messages = Helper.setEscalations(rows, msgs)
+    
     await this.destroyConnection()
     return { messages, errors }
   }
