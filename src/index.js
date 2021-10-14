@@ -67,11 +67,11 @@ class SocialMediaMonitor {
         const exists = await this.database.schema.hasTable(Helper.getTableName())
         if (!exists) {
           await this.database.schema.createTable(Helper.getTableName(), (table) => {
-            table.increments();
+            table.increments()
             table.string('uuid').defaultTo(uuid())
-            table.string('page_id');
-            table.string('comment_id');
-            table.string('thread_id');
+            table.string('page_id')
+            table.string('comment_id')
+            table.string('thread_id')
             table.string('channel').defaultTo(null)
             table.string('message_type').defaultTo(null)
             table.boolean('adverse').defaultTo(false)
@@ -132,17 +132,17 @@ class SocialMediaMonitor {
     const errors = [
       ...fb.errors
     ]
-    const comments = [];
+    const comments = []
     msgs.forEach(m => {
       if (m.comments instanceof Array) {
         m.comments.forEach(n => {
-          comments.push(n.id);
+          comments.push(n.id)
           if(n.comments instanceof Array) {
             n.comments.forEach(b => {
-              comments.push(b.id);
-            });
+              comments.push(b.id)
+            })
           }
-        });
+        })
       }
     })
 
@@ -171,7 +171,7 @@ class SocialMediaMonitor {
       }
 
       // Check for object correctness separately?
-      const channel = this.channels[this.channels.indexOf(message.channel)];
+      const channel = this.channels[this.channels.indexOf(message.channel)]
 
       if (!channel) {
         throw Error(`message ${message.id} has no channels`)
@@ -181,34 +181,34 @@ class SocialMediaMonitor {
     }
   }
 
-  async escalate(messages) {
+  async update(messages) {
     await this.connect()
     messages = [].concat(messages)
     const inserted = []
     const changed = []
     for (const i in messages) {
       const message = messages[i]
-      const rows = await this.database.select('comment_id', 'page_id')
-      .from(Helper.getTableName())
-      .where('page_id', message.page_id)
-      .andWhere('comment_id', message.comment_id)
-      .returning('*')
+      const rows = await Query
+        .findComment(this.database, message.page_id, message.comment_id)
       if (rows.length > 0) {
-        const row = await this.database(Helper.getTableName())
-        .where('page_id', message.page_id)
-        .andWhere('comment_id', message.comment_id)
-        .update(message)
-        .returning('*')
+        const row = await Query
+          .updateComment(this.database, message.page_id, message.comment_id, message)
         changed.push(row[0])
       } else {
-        const row = await this.database(Helper.getTableName())
-        .insert(message)
-          .returning('*')
+        const row = await Query.insertComment(this.database, message)
         inserted.push(row[0])
       }
     }
     await this.destroyConnection()
     return inserted.concat(changed)
+  }
+
+  async handle(messages) {
+    return await this.update(messages)
+  }
+
+  async escalate(messages) {
+    return await this.update(messages)
   }
 }
 

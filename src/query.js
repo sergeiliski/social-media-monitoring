@@ -13,6 +13,40 @@ class Query {
       return rows
   }
 
+  static async findComment(database, page_id, comment_id) {
+    try {
+      return database.select('comment_id', 'page_id')
+      .from(Helper.getTableName())
+      .where('page_id', page_id)
+      .andWhere('comment_id', comment_id)
+      .returning('*')
+    } catch (error) {
+      throw Error('Failed during find comment.')
+    }
+  }
+
+  static async updateComment(database, page_id, comment_id, message) {
+    try {
+      return database(Helper.getTableName())
+      .where('page_id', page_id)
+      .andWhere('comment_id', comment_id)
+      .update(message)
+      .returning('*')
+    } catch (error) {
+      throw Error('Failed during update comment.')
+    }
+  }
+
+  static async insertComment(database, message) {
+    try {
+      return database(Helper.getTableName())
+      .insert(message)
+      .returning('*')
+    } catch {
+      throw Error('Failed during insert comment.')
+    }
+  }
+
 }
 
 export default Query
