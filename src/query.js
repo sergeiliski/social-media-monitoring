@@ -13,6 +13,15 @@ class Query {
       return rows
   }
 
+  static async getMetadata(database, comments) {
+    const rows = await database
+      .select('comment_id', 'page_id', 'metadata')
+      .from(Helper.getTableName())
+      .whereIn('comment_id', comments)
+      .whereNotNull('metadata')
+      return rows
+  }
+
   static async findComment(database, page_id, comment_id) {
     try {
       return database.select('comment_id', 'page_id')

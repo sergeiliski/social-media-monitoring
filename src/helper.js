@@ -38,6 +38,32 @@ class Helper {
     return this.table
   }
 
+  static setMetadata(rows, messages) {
+    rows.forEach((row) => {
+      messages.forEach((thread, i) => {
+        if (
+          row.page_id !== thread.page_id
+        ) {
+          // Top object. Not message
+          return
+        }
+        thread.comments.forEach((comment, j) => {
+          if (row.comment_id === comment.id) {
+            messages[i].comments[j].metadata = JSON.parse(row.metadata)
+          }
+          if (comment.comments instanceof Array) {
+            comment.comments.forEach((cmt, k) => {
+              if (row.comment_id === cmt.id) {
+                messages[i].comments[j].comments[k].metadata = JSON.parse(row.metadata)
+              }
+            })
+          }
+        });
+      })
+    })
+    return messages
+  }
+
   static setEscalations(rows, messages) {
     rows.forEach((row) => {
       messages.forEach((thread, i) => {

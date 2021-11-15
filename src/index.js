@@ -146,14 +146,17 @@ class SocialMediaMonitor {
       }
     })
 
-    const rows = await Query.getEscalations(this.database, comments)
-    const messages = Helper.setEscalations(rows, msgs)
+    let rows = await Query.getEscalations(this.database, comments)
+    rows = await Query.getMetadata(this.database, comments)
+    let messages = Helper.setEscalations(rows, msgs)
+    messages = Helper.setMetadata(rows, msgs)
     
     await this.destroyConnection()
     return { messages, errors }
   }
 
-  async reply(messages) {
+  async reply(messages, save) {
+    // currently is [].concat({})
     messages = [].concat(messages)
     for (const i in messages) {
       const message = messages[i]
@@ -177,7 +180,20 @@ class SocialMediaMonitor {
         throw Error(`message ${message.id} has no channels`)
       }
 
-      return this[channel].reply(message) // ie. this.facebook.reply(message)
+      const reply = await this[channel].reply(message); // ie. this.facebook.reply(message)
+
+      if (reply) {
+        if (save) {
+          await this.connect()
+          message.comment_id = reply.data.id;
+          delete message.message
+          delete message.id
+          const row = await Query.insertComment(this.database, message)
+          await this.destroyConnection()
+        }
+      }
+
+      return reply;
     }
   }
 
