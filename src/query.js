@@ -68,6 +68,8 @@ class Query {
         'pqc',
         'mi',
         'handled',
+        'spam',
+        'archived',
         'metadata'
       )
       .from(Helper.getTableName())
@@ -84,13 +86,13 @@ class Query {
             )
           }
           if (filters.adverse) {
-            query.where('adverse', true)
+            query.orWhere('adverse', true)
           }
           if (filters.pqc) {
-            query.where('pqc', true)
+            query.orWhere('pqc', true)
           }
           if (filters.mi) {
-            query.where('mi', true)
+            query.orWhere('mi', true)
           }
           if (filters.clients && filters.clients.length > 0) {
             query.whereIn('page_id', filters.clients.map(c => c.id))

@@ -273,11 +273,11 @@ class Facebook {
       data.direct = data.direct.filter(m => options.ids.includes(m.id));
       comments.forEach((comment, i) => {
         if (comment.channel === 'facebook' && comment.message_type === 'direct') {
-          const idx = data.feed.findIndex((c) => {
+          const idx = data.direct.findIndex((c) => {
             return c.id === comment.comment_id;
           });
           if (idx > -1) {
-            comments[i].message = data.feed[idx].message;
+            comments[i].message = data.direct[idx].message;
           }
         }
       })
