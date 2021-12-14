@@ -49,10 +49,57 @@ class Query {
   static async insertComment(database, message) {
     try {
       return database(Helper.getTableName())
-      .insert(message)
+      .insert(Helper.setInsertCommentData(message))
       .returning('*')
-    } catch {
+    } catch (err) {
+      console.error(err);
       throw Error('Failed during insert comment.')
+    }
+  }
+
+  static async getExportData(database, filters) {
+    try {
+      return database.select(
+        'comment_id',
+        'page_id',
+        'message_type',
+        'channel',
+        'adverse',
+        'pqc',
+        'mi',
+        'handled',
+        'metadata'
+      )
+      .from(Helper.getTableName())
+      .modify(function(query) {
+        if (filters) {
+          if (filters.start_date) {
+            query.whereRaw(
+              `cast(metadata::jsonb->>'created_time' as Date) >= '${new Date(filters.start_date).toISOString().split('T')[0]}'`
+            )
+          }
+          if (filters.end_date) {
+            query.whereRaw(
+              `cast(metadata::jsonb->>'created_time' as Date) < '${new Date(filters.end_date).toISOString().split('T')[0]}'`
+            )
+          }
+          if (filters.adverse) {
+            query.where('adverse', true)
+          }
+          if (filters.pqc) {
+            query.where('pqc', true)
+          }
+          if (filters.mi) {
+            query.where('mi', true)
+          }
+          if (filters.clients && filters.clients.length > 0) {
+            query.whereIn('page_id', filters.clients.map(c => c.id))
+          }
+        }
+      })
+      .returning('*')
+    } catch (err) {
+      throw Error('Failed during export.')
     }
   }
 

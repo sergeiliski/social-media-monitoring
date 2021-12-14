@@ -94,6 +94,20 @@ class Helper {
     return messages
   }
 
+  static setInsertCommentData(message) {
+    if (message.created_time) {
+      if (message.metadata) {
+        message.metadata['created_time'] = message.created_time;
+      } else {
+        message.metadata = {
+          created_time: message.created_time
+        }
+      }
+      delete message.created_time
+    }
+    return message;
+  }
+
 }
 
 export default Helper

@@ -55,15 +55,6 @@ class Facebook {
     return response
   }
 
-  // async getComment(page, comment_id) {
-  //   const response = { messages: [], errors: [] }
-  //   const token = page.token
-  //   const url = ''.concat(this.baseUrl, ''.concat(comment_id, '/', 'comments'), '&access_token=', token)
-  //   console.log('url', url);
-  //   const results = await this.getAllResults(url)
-  //   console.log(results);
-  // }
-
   async getFeedMessages(pages) {
     // https://developers.facebook.com/docs/graph-api/reference/v10.0/page/feed
     const response = { messages: [], errors: [] }
@@ -104,7 +95,7 @@ class Facebook {
                   from: lowLevelComment.from,
                   message: lowLevelComment.message,
                   id: lowLevelComment.id,
-                  page_id: page.id
+                  page_id: page.id,
                 }
               });
             comments[i].comments = lowComments
@@ -231,6 +222,67 @@ class Facebook {
       }
       return null
     }
+  }
+
+  async getExportData(comments, clients) {
+    const options = {
+      pages: [],
+      ids: [],
+      required: {
+        direct: false,
+        feed: false
+      }
+    };
+    const data = {
+      feed: [],
+      direct: []
+    };
+    comments.forEach((comment) => {
+      if (comment.channel !== 'facebook') {
+        return;
+      }
+      options.pages.push(comment.page_id);
+      options.ids.push(comment.comment_id);
+      if (comment.message_type === 'feed') {
+        options.required.feed = true;
+      }
+      if (comment.message_type === 'direct') {
+        options.required.direct = true;
+      }
+    })
+    if (options.required.feed) {
+      const pages = clients.filter(c => options.pages.includes(c.id))
+      const messages = await this.getFeedMessages(pages);
+      data.feed = [].concat.apply([], messages.messages.map(m => m.comments ? m.comments : []), messages.messages);
+      data.feed = data.feed.filter(m => options.ids.includes(m.id));
+      comments.forEach((comment, i) => {
+        if (comment.channel === 'facebook' && comment.message_type === 'feed') {
+          const idx = data.feed.findIndex((c) => {
+            return c.id === comment.comment_id;
+          });
+          if (idx > -1) {
+            comments[i].message = data.feed[idx].message;
+          }
+        }
+      })
+    }
+    if (options.required.direct) {
+      const pages = clients.filter(c => options.pages.includes(c.id))
+      const messages = await this.getDirectMessages(pages);
+      data.direct = [].concat.apply([], messages.messages.map(m => m.comments ? m.comments : []), messages.messages);
+      data.direct = data.direct.filter(m => options.ids.includes(m.id));
+      comments.forEach((comment, i) => {
+        if (comment.channel === 'facebook' && comment.message_type === 'direct') {
+          const idx = data.feed.findIndex((c) => {
+            return c.id === comment.comment_id;
+          });
+          if (idx > -1) {
+            comments[i].message = data.feed[idx].message;
+          }
+        }
+      })
+    }
+    return comments;
   }
 
 }

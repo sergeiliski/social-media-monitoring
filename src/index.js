@@ -147,10 +147,9 @@ class SocialMediaMonitor {
     })
 
     let rows = await Query.getEscalations(this.database, comments)
-    rows = await Query.getMetadata(this.database, comments)
     let messages = Helper.setEscalations(rows, msgs)
+    rows = await Query.getMetadata(this.database, comments)
     messages = Helper.setMetadata(rows, msgs)
-    
     await this.destroyConnection()
     return { messages, errors }
   }
@@ -225,6 +224,17 @@ class SocialMediaMonitor {
 
   async escalate(messages) {
     return await this.update(messages)
+  }
+
+  /**
+   * @param filters Filtering options like ae, mi, pqc or all, dates, client etc.
+   * @return Returns data needed for exporting to excel
+   */
+  async export(filters) {
+    await this.connect()
+    const comments = await Query.getExportData(this.database, filters)
+    const data = this.facebook.getExportData(comments, filters.clients);
+    return data
   }
 }
 
